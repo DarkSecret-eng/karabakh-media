@@ -236,11 +236,13 @@ const AuthModal = ({
   onClose,
   authMode,
   setAuthMode,
+  onGoogleSignIn,
 }: {
   isOpen: boolean;
   onClose: () => void;
   authMode: 'login' | 'register';
   setAuthMode: (mode: 'login' | 'register') => void;
+  onGoogleSignIn: () => void;
 }) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -412,7 +414,7 @@ const AuthModal = ({
                   {/* Google Sign In Button */}
                   <motion.button
                     type="button"
-                    onClick={handleGoogleSignIn}
+                    onClick={onGoogleSignIn}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full py-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 font-semibold text-white transition-all"
@@ -1242,6 +1244,7 @@ export default function KarabakhMedia() {
         onClose={() => setIsAuthOpen(false)}
         authMode={authMode}
         setAuthMode={setAuthMode}
+        onGoogleSignIn={handleGoogleSignIn}
       />
     </div>
   );
