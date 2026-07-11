@@ -14,7 +14,10 @@ import {
   Mail,
   Lock,
   User,
+  LogOut,
 } from 'lucide-react';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
 
 // Staggered text reveal component
 const RevealText = ({ children, className = '' }: { children: string; className?: string }) => {
@@ -409,6 +412,7 @@ const AuthModal = ({
                   {/* Google Sign In Button */}
                   <motion.button
                     type="button"
+                    onClick={handleGoogleSignIn}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full py-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 font-semibold text-white transition-all"
@@ -544,6 +548,32 @@ export default function KarabakhMedia() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Firebase authentication state listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      setIsAuthOpen(false);
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Sign-out error:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B0410] via-[#16092B] to-[#0A0014] text-white overflow-hidden">
@@ -602,16 +632,43 @@ export default function KarabakhMedia() {
                 <social.icon size={20} />
               </motion.a>
             ))}
-            <motion.button
-              onClick={() => {
-                setIsAuthOpen(true);
-                setAuthMode('login');
-              }}
-              whileHover={{ scale: 1.05 }}
-              className="px-4 py-2 rounded-lg bg-white/5 border border-[#D4AF37]/40 hover:border-[#D4AF37]/80 text-[#D4AF37] font-semibold text-sm transition-all"
-            >
-              Giriş
-            </motion.button>
+            {currentUser ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white/5 backdrop-blur-md border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-3"
+              >
+                {currentUser.photoURL && (
+                  <img
+                    src={currentUser.photoURL}
+                    alt="User Avatar"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                )}
+                <span className="text-sm font-semibold text-white/90">
+                  {currentUser.displayName?.split(' ')[0] || 'User'}
+                </span>
+                <motion.button
+                  onClick={handleSignOut}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-1.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 hover:shadow-lg hover:shadow-red-500/30 transition-all"
+                >
+                  <LogOut size={16} />
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.button
+                onClick={() => {
+                  setIsAuthOpen(true);
+                  setAuthMode('login');
+                }}
+                whileHover={{ scale: 1.05 }}
+                className="px-4 py-2 rounded-lg bg-white/5 border border-[#D4AF37]/40 hover:border-[#D4AF37]/80 text-[#D4AF37] font-semibold text-sm transition-all"
+              >
+                Giriş
+              </motion.button>
+            )}
             <motion.button
               whileHover={{ scale: 1.05 }}
               className="ml-4 px-4 py-2 rounded-lg bg-gradient-to-r from-[#A855F7] to-[#D4AF37] text-black font-semibold text-sm hover:shadow-lg hover:shadow-[#A855F7]/50 transition-all"
